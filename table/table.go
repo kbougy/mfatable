@@ -1,8 +1,7 @@
-package main
+package table
 
 import (
 	"encoding/csv"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/olekukonko/tablewriter"
@@ -11,18 +10,23 @@ import (
 	"strings"
 )
 
-func print_records(records [][]string) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"User", "Password Enabled", "MFA Status"})
-	table.SetBorder(false)
-	for _, record := range records[1:] {
-		trimmed_record := []string{record[0], record[3], record[7]}
-		table.Append(trimmed_record)
-	}
-	table.Render()
+func TrimRecord(record []string) (trimmed []string) {
+	t := []string{record[0], record[3], record[7]}
+	return t
 }
 
-func wait_for_credential_report(s *session.Session) {
+func PrintRecords(records [][]string) {
+	t := tablewriter.NewWriter(os.Stdout)
+	t.SetHeader([]string{"User", "Password Enabled", "MFA Status"})
+	t.SetBorder(false)
+	for _, record := range records[1:] {
+		trimmed := TrimRecord(record)
+		t.Append(trimmed)
+	}
+	t.Render()
+}
+
+func WaitForCredentialReport(s *session.Session) {
 	iam_client := iam.New(s)
 	generate_credential_report, err := iam_client.GenerateCredentialReport(
 		&iam.GenerateCredentialReportInput{},
@@ -33,12 +37,12 @@ func wait_for_credential_report(s *session.Session) {
 	}
 
 	if *generate_credential_report.State != "COMPLETE" {
-		wait_for_credential_report(s)
+		WaitForCredentialReport(s)
 	}
 	return
 }
 
-func print_credential_report(s *session.Session) {
+func PrintCredentialReport(s *session.Session) {
 	iam_client := iam.New(s)
 	get_credential_report, err := iam_client.GetCredentialReport(
 		&iam.GetCredentialReportInput{},
@@ -57,14 +61,5 @@ func print_credential_report(s *session.Session) {
 		log.Fatal(err)
 	}
 
-	print_records(records)
-}
-
-func main() {
-	s := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String("us-west-2"),
-	}))
-
-	wait_for_credential_report(s)
-	print_credential_report(s)
+	PrintRecords(records)
 }
