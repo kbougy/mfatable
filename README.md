@@ -13,4 +13,6 @@ $GOPATH/bin/mfatable
 ```
 
 If you have `$GOPATH/bin` as part of your `$PATH`.
-
+```
+mfatable
+```

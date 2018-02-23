@@ -1,7 +1,9 @@
+// Package table
 package table
 
 import (
 	"encoding/csv"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/olekukonko/tablewriter"
@@ -62,4 +64,12 @@ func PrintCredentialReport(s *session.Session) {
 	}
 
 	PrintRecords(records)
+}
+
+func PrintTable() {
+	s := session.Must(session.NewSession(&aws.Config{
+		Region: aws.String("us-west-2"),
+	}))
+	WaitForCredentialReport(s)
+	PrintCredentialReport(s)
 }
